@@ -2,6 +2,8 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { sale } from "../../models/sale";
+import { BASE_URL } from "../../utils/request";
 import NotificationButton from '../NotificationButton';
 import './styles.css';
 
@@ -13,11 +15,17 @@ function SalesCard(){
     const [minDate, setMinDate] = useState(min);
     const [maxDate, setMaxDate] = useState(max);
 
-    useEffect(()=>{
-      axios.get("http://localhost:8080/sales").then(response=>{
+    const [sales, setSales] = useState<sale[]>([]);
 
-      });
-    },[]);
+    useEffect(()=>{
+      const dmin = minDate.toISOString().slice(0,10);
+      const dmax = maxDate.toISOString().slice(0,10);
+
+      axios.get(`${BASE_URL}/sales?minDate=${dmin}&maxDate=${dmax}`)
+        .then(response=>{
+          setSales(response.data.content);
+        });
+    },[minDate,maxDate]);
 
     return(
         <div className="dsmeta-card">
@@ -55,6 +63,25 @@ function SalesCard(){
                   </tr> 
                 </thead>
                 <tbody>
+                  {
+                    sales.map(sale =>{
+                      return (
+                        <tr key={sale.id}>
+                          <td>{sale.id}</td>
+                          <td>{new Date(sale.date).toLocaleDateString()}</td>
+                          <td>{sale.sellerName}</td>
+                          <td>{sale.visited}</td>
+                          <td>{sale.deals}</td>
+                          <td>R$ {sale.amount.toFixed(2)}</td>
+                          <td>
+                            <div className="dsmeta-red-btn-container">
+                              <NotificationButton />
+                            </div>
+                          </td>                          
+                        </tr>
+                      )
+                    })
+                  }
                   <tr>
                     <td className="show992">#341</td>
                     <td className="show576">08/07/2022</td>
